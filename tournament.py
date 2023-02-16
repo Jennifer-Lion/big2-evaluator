@@ -8,7 +8,6 @@ fileList = os.listdir('agents')
 fileNameList = [x.split('.')[0] for x in fileList]
 
 my_file = open("agents.txt", "r") #agentsFile as a str in .txt 
-# maybe can make the filename into a cmd arg
 agentsList = my_file.read().split("\n")
 my_file.close()
 
@@ -26,15 +25,24 @@ def singleElim(n_games):
     in_play = agentsList.copy() # agents that are still in the game after each round
     in_play_dummy = agentsList.copy() # duplicate, to remove eliminated agents while in_play is being looped through
 
-    for round_n in range(n_rounds):
-        print("round " + str(round_n + 1))
+    to_bye = 2**math.ceil(math.log(n_agents, 2)) - n_agents # no. of agents to be assigned a bye in first round
+    to_play = n_agents - to_bye # no. of agents to play first round
+
+    print("Starting pair-wise single-elimination tournament on " + str(n_agents) + " agents")
+
+    for round_n in range(n_rounds): # loop through each round of elimination
+        print("\nround " + str(round_n + 1))
         random.shuffle(in_play) # reduce match-up bias
 
-        for i in range(len(in_play)//2): # loop through each match of 2 players; last player will not play if it's odd
-            # print(agentsList)
-            # print(in_play)
-            # print(in_play_dummy)
-            print(str(in_play[i*2]) + " vs " + str(in_play[i*2 + 1])) # out of range LOOK AT THIS AGAIN
+        for i in range(len(in_play)//2): # loop through each match of 2 players
+            
+            # assigning bye's in the first round
+            if round_n == 0 and (i*2) >= to_play:
+                for j in range(i*2, (i*2 + to_bye)):
+                    print(str(in_play[j]) + " did not play - assigned 'BYE' ==> proceeds to next round\n")
+                break
+
+            print(str(in_play[i*2]) + " vs " + str(in_play[i*2 + 1]))
             scores = match.matchSimulation(n_games, in_play[i*2], in_play[i*2 + 1], in_play[i*2], in_play[i*2 + 1]) # A vs B vs A vs B
             A_sum = (scores[0] + scores[2])
             B_sum = (scores[1] + scores[3])
@@ -43,11 +51,15 @@ def singleElim(n_games):
             if A_sum < B_sum:
                 in_play_dummy.remove(in_play[i*2])
                 ranking[in_play[i*2]] = n_rounds + 1 - round_n 
-            else: # this includes tie... maybe find a better way to handle ties !!
+                print(str(in_play[i*2 + 1]) + " wins this match!\n")
+            else:
                 in_play_dummy.remove(in_play[i*2 + 1])
                 ranking[in_play[i*2 + 1]] = n_rounds + 1 - round_n 
+                print(str(in_play[i*2]) + " wins this match!\n")
         
-        in_play = in_play_dummy.copy() # update the list of players who are still in play after each round
+        # update the list of players who are still in play after each round
+        in_play = in_play_dummy.copy() 
+
 
     ranking[in_play[0]] = 1 # the only agent left in the game is the winner (rank=1)
     return ranking
@@ -55,8 +67,7 @@ def singleElim(n_games):
 
 
 def swiss(n_games):
-
-    match.matchSimulation(4, agentsList[0], agentsList[1], agentsList[2], agentsList[3])
+    pass
 
 
 
