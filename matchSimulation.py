@@ -1,8 +1,9 @@
 from logic import Logic
 from card import Card
+
 import importlib
 
-def matchSimulation(session, agent1, agent2, agent3, agent4):
+def matchSimulation(n_games, agent1, agent2, agent3, agent4):
     # Initialization of AI
     player1 = importlib.import_module('agents.'+agent1)
     player2 = importlib.import_module('agents.'+agent2)
@@ -17,7 +18,7 @@ def matchSimulation(session, agent1, agent2, agent3, agent4):
     scoresTotal = [0, 0, 0, 0]
     winsTotal = [0, 0, 0, 0]
 
-    for sess in range(session):
+    for sess in range(n_games):
         
         # Shuffle and deal cards
         shuffled = card.shuffleDeck()
@@ -25,7 +26,6 @@ def matchSimulation(session, agent1, agent2, agent3, agent4):
         player2Hand = card.sortingCards(shuffled[13:26])
         player3Hand = card.sortingCards(shuffled[26:39])
         player4Hand = card.sortingCards(shuffled[39:52])
-
 
         # Initialize variables before every game starts
         myTurn = shuffled.index('3D') // 13
@@ -39,8 +39,8 @@ def matchSimulation(session, agent1, agent2, agent3, agent4):
         disqualified = [False, False, False, False]
         
 
+
         # Game starts
-        print("GAME STARTS")
         while not gameOver:
             # Choosing player
             if myTurn == 0:
@@ -56,15 +56,12 @@ def matchSimulation(session, agent1, agent2, agent3, agent4):
                 handInPlay = player4Hand
                 player = player4
 
-            print("player " + str(myTurn + 1) + "'s turn")
-            # print("hand = " + str(handInPlay))
-            # print("possible moves = " + str(logic.possibleMoves(handInPlay, field, control, turn)))
-
             # Take note of number of cards left
             cardsLeft = [len(player1Hand), len(player2Hand), len(player3Hand), len(player4Hand)]
 
             # Combination played
             played = player.action(handInPlay, field, control, turn, field_history, cardsLeft[(myTurn+1) % 4], cardsLeft[(myTurn+2) % 4], cardsLeft[(myTurn+3) % 4])
+
 
             try:
                 played = card.sortingCards(played)
@@ -77,6 +74,7 @@ def matchSimulation(session, agent1, agent2, agent3, agent4):
                         field_history += field
                         field_history = card.sortingCards(field_history)
                         passes = 0
+
                     # Update hand after throwing cards
                     if myTurn == 0:
                         player1Hand = [card for card in handInPlay if card not in played]
@@ -101,17 +99,14 @@ def matchSimulation(session, agent1, agent2, agent3, agent4):
                     if control: # if disqualified player was supposed to lead the trick
                         passes = 3 # pass the control to the next player
 
-
             except: # formatting error should be raised
                 raise Exception(str(played) + " by " + str([agent1, agent2, agent3, agent4][myTurn]) + " contains an invalid card. Check formatting.")
-
 
 
             if gameOver:
                 break
 
-            
-            
+                        
             # if next player has only 1 card left
             if cardsLeft[(myTurn+1) % 4] == 1: 
                 if played == [] and logic.possibleMoves(handInPlay, field, control, turn) != [[]]: # pass
@@ -131,7 +126,6 @@ def matchSimulation(session, agent1, agent2, agent3, agent4):
                 lastCardDanger = False
 
 
-
             # Deciding the next player
             turn += 1
             myTurn = (myTurn+1) % 4
@@ -147,18 +141,9 @@ def matchSimulation(session, agent1, agent2, agent3, agent4):
             else:
                 control = False
 
-            # print("control: " + str(control))
-            # print("turn: " + str(turn))
-            # print("passes: " + str(passes))
-            # print("field: " + str(field))
-            print("played: " + str(played))
-            print("\n")
-
 
 
         # Game ends & scoring
-        print("\n")
-        print("GAME OVER")
         scoresRound = [-len(player1Hand), -len(player2Hand), -len(player3Hand), -len(player4Hand)]
         for i in range(4): # adjust penalties
             if scoresRound[i] == -13: # 13 cards remaining; never play any of his cards
@@ -177,8 +162,6 @@ def matchSimulation(session, agent1, agent2, agent3, agent4):
         for i in range(4):
             scoresTotal[i] += scoresRound[i]
         
-        # choose one - experiment with the scores
-        print("scores this round: " + str(scoresRound))
-        print("total scores: " + str(scoresTotal))
-        print("total wins: " + str(winsTotal))
-        print("\n\n\n")
+
+
+    return scoresTotal
