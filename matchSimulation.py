@@ -62,11 +62,13 @@ def matchSimulation(n_games, agent1, agent2, agent3, agent4):
             # Combination played
             played = player.action(handInPlay, field, control, turn, field_history, cardsLeft[(myTurn+1) % 4], cardsLeft[(myTurn+2) % 4], cardsLeft[(myTurn+3) % 4])
 
+            # Valid combinations of cards
+            valid_moves = logic.possibleMoves(handInPlay, field, control, turn)
 
             try:
                 played = card.sortingCards(played)
 
-                if played in logic.possibleMoves(handInPlay, field, control, turn): # valid move
+                if played in valid_moves: # valid move
                     if played == []:
                         passes += 1
                     else:
@@ -109,11 +111,11 @@ def matchSimulation(n_games, agent1, agent2, agent3, agent4):
                         
             # if next player has only 1 card left
             if cardsLeft[(myTurn+1) % 4] == 1: 
-                if played == [] and logic.possibleMoves(handInPlay, field, control, turn) != [[]]: # pass
+                if played == [] and valid_moves != [[]]: # pass
                     lastCardDanger = True
                 elif len(played) == 1: # singles
                     # if player deliberately chooses singles when there are other possible combinations
-                    if control and len(logic.possibleMoves(handInPlay, field, control, turn)[-1]) > 1: 
+                    if control and len(valid_moves[-1]) > 1: 
                         lastCardDanger = True
                     # if player does not play his highest card
                     elif card.getCardValues(played)[0] != max(card.getCardValues(handInPlay)):
@@ -165,3 +167,24 @@ def matchSimulation(n_games, agent1, agent2, agent3, agent4):
 
 
     return scoresTotal
+
+
+
+if __name__ == '__main__':
+    import time
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Match Simulation for 4 players')
+    parser.add_argument('n_games', type=int, help='number of games in a match')
+    parser.add_argument('agent_1', type=str, help='agent 1')
+    parser.add_argument('agent_2', type=str, help='agent 2')
+    parser.add_argument('agent_3', type=str, help='agent 3')
+    parser.add_argument('agent_4', type=str, help='agent 4')
+    args = parser.parse_args()
+
+    start = time.time()
+
+    print(matchSimulation(args.n_games, args.agent_1, args.agent_2, args.agent_3, args.agent_4))
+
+    end = time.time()
+    print("time taken: " + str(end-start))
