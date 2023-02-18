@@ -17,6 +17,8 @@ def matchSimulation(n_games, agent1, agent2, agent3, agent4):
     # Initialization of simulation settings
     scoresTotal = [0, 0, 0, 0]
     winsTotal = [0, 0, 0, 0]
+    disqualifiedTournament = [False, False, False, False]
+    disqualifiedCounter = [0, 0, 0, 0]
 
     for sess in range(n_games):
         
@@ -36,7 +38,7 @@ def matchSimulation(n_games, agent1, agent2, agent3, agent4):
         field_history = [] # cards that have been played
         turn = 0
         scoresRound = [0, 0, 0, 0]
-        disqualified = [False, False, False, False]
+        disqualified = disqualifiedTournament
         
 
 
@@ -101,8 +103,14 @@ def matchSimulation(n_games, agent1, agent2, agent3, agent4):
                     if control: # if disqualified player was supposed to lead the trick
                         passes = 3 # pass the control to the next player
 
-            except: # formatting error should be raised
-                raise Exception(str(played) + " by " + str([agent1, agent2, agent3, agent4][myTurn]) + " contains an invalid card. Check formatting.")
+            except: # disqualify player if wrong format for 3 games
+                disqualifiedCounter[myTurn] += 1 # add 1 strike for every game that the agent throws an incompatible format
+                if disqualifiedCounter[myTurn] >= 3:
+                    disqualified[myTurn] = True
+                    disqualifiedTournament[myTurn] = True
+                    print(str([agent1, agent2, agent3, agent4][myTurn]) + " has been disqualified from this match for throwing cards of the format.")
+                    if control: # if disqualified player was supposed to lead the trick
+                        passes = 3 # pass the control to the next player
 
 
             if gameOver:
