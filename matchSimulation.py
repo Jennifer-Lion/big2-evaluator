@@ -17,7 +17,7 @@ def matchSimulation(n_games, agent1, agent2, agent3, agent4):
     # Initialization of simulation settings
     scoresTotal = [0, 0, 0, 0]
     winsTotal = [0, 0, 0, 0]
-    disqualifiedTournament = [False, False, False, False]
+    disqualifiedMatch = [False, False, False, False]
     disqualifiedCounter = [0, 0, 0, 0]
 
     for sess in range(n_games):
@@ -31,6 +31,12 @@ def matchSimulation(n_games, agent1, agent2, agent3, agent4):
 
         # Initialize variables before every game starts
         myTurn = shuffled.index('3D') // 13
+        while disqualifiedMatch[myTurn]: # skip 
+            myTurn = (myTurn+1) % 4
+            passes += 1
+            if passes > 3: # everyone is disqualified in the match
+                return scoresTotal # end match and return the current scoresTotal
+        
         gameOver = False
         control = True
         passes = 0 # number of passes before this guy's turn
@@ -38,7 +44,7 @@ def matchSimulation(n_games, agent1, agent2, agent3, agent4):
         field_history = [] # cards that have been played
         turn = 0
         scoresRound = [0, 0, 0, 0]
-        disqualified = disqualifiedTournament
+        disqualified = disqualifiedMatch
         
 
 
@@ -107,13 +113,13 @@ def matchSimulation(n_games, agent1, agent2, agent3, agent4):
                 disqualifiedCounter[myTurn] += 1 # add 1 strike for every game that the agent throws an incompatible format
                 if disqualifiedCounter[myTurn] >= 3:
                     disqualified[myTurn] = True
-                    disqualifiedTournament[myTurn] = True
+                    disqualifiedMatch[myTurn] = True
                     print(str([agent1, agent2, agent3, agent4][myTurn]) + " has been disqualified from this match for throwing cards of the format.")
                     if control: # if disqualified player was supposed to lead the trick
                         passes = 3 # pass the control to the next player
 
 
-            if gameOver:
+            if gameOver: # to save time by not doing the below operations
                 break
 
                         
@@ -166,8 +172,9 @@ def matchSimulation(n_games, agent1, agent2, agent3, agent4):
             scoresRound = [0,0,0,0]
             scoresRound[(myTurn-1) % 4] = tempScoreSum # prev player
         
-        scoresRound[myTurn] = -tempScoreSum
-        winsTotal[myTurn] += 1
+        if scoresRound[myTurn] == 0: # in the case where the game ends without any winner, don't adjust anything
+            scoresRound[myTurn] = -tempScoreSum
+            winsTotal[myTurn] += 1
 
         for i in range(4):
             scoresTotal[i] += scoresRound[i]
