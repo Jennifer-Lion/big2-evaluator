@@ -20,7 +20,13 @@ def matchSimulation(n_games, agent1, agent2, agent3, agent4):
     disqualifiedMatch = [False, False, False, False]
     disqualifiedCounter = [0, 0, 0, 0]
 
-    for sess in range(n_games):
+    for game in range(n_games):
+        # In case 3 players have been disqualified in this match
+        if disqualifiedMatch.count(True) == 3: 
+            print("Tournament ended prematurely due to 3 of the agents being disqualified from match")
+            return scoresTotal
+
+        print("Game " + str(game+1))
         
         # Shuffle and deal cards
         shuffled = card.shuffleDeck()
@@ -31,11 +37,6 @@ def matchSimulation(n_games, agent1, agent2, agent3, agent4):
 
         # Initialize variables before every game starts
         myTurn = shuffled.index('3D') // 13
-        while disqualifiedMatch[myTurn]: # skip 
-            myTurn = (myTurn+1) % 4
-            passes += 1
-            if passes > 3: # everyone is disqualified in the match
-                return scoresTotal # end match and return the current scoresTotal
         
         gameOver = False
         control = True
@@ -44,12 +45,33 @@ def matchSimulation(n_games, agent1, agent2, agent3, agent4):
         field_history = [] # cards that have been played
         turn = 0
         scoresRound = [0, 0, 0, 0]
-        disqualified = disqualifiedMatch
-        
+        disqualified = disqualifiedMatch.copy() # changes every game
 
+        while disqualifiedMatch[myTurn]: # skip at first turn
+            turn += 1
+            myTurn = (myTurn+1) % 4
+            passes += 1
+            if passes > 3: # everyone is disqualified in the match
+                return scoresTotal # end match and return the current scoresTotal
+        
 
         # Game starts
         while not gameOver:
+
+            # In case all the other players have been disqualified in this game
+            if disqualified.count(True) == 3: 
+                print("All other players have been disqualified. Auto win for " + str([agent1, agent2, agent3, agent4][myTurn]))
+                if myTurn == 0:
+                    player1Hand = []
+                elif myTurn == 1:
+                    player2Hand = []
+                elif myTurn == 2:
+                    player3Hand = []
+                else:
+                    player4Hand = []
+                gameOver = True
+                break
+
             # Choosing player
             if myTurn == 0:
                 handInPlay = player1Hand
@@ -72,6 +94,11 @@ def matchSimulation(n_games, agent1, agent2, agent3, agent4):
 
             # Valid combinations of cards
             valid_moves = logic.possibleMoves(handInPlay, field, control, turn)
+            # print("turn" + str(turn))
+            # print("control" + str(control))
+            # print("can throw = " + str(valid_moves))
+            # print("cards on the table = " + str(field))
+            # print("played = " + str(played))
 
             try:
                 played = card.sortingCards(played)
@@ -104,19 +131,26 @@ def matchSimulation(n_games, agent1, agent2, agent3, agent4):
                             gameOver = True
 
                 else: # invalid move
+                    disqualifiedCounter[myTurn] += 1 # add 1 strike for every game that the agent makes an invalid move
                     disqualified[myTurn] = True
-                    print(str([agent1, agent2, agent3, agent4][myTurn]) + " disqualified.")
+                    passes += 1
+                    print(str([agent1, agent2, agent3, agent4][myTurn]) + " has been disqualified from this game for making an invalid move.")
+                    if disqualifiedCounter[myTurn] >= 3:
+                        disqualifiedMatch[myTurn] = True
+                        print(str([agent1, agent2, agent3, agent4][myTurn]) + " has been disqualified from this match.")
                     if control: # if disqualified player was supposed to lead the trick
                         passes = 3 # pass the control to the next player
 
-            except: # disqualify player if wrong format for 3 games
+            except: # wrong format
                 disqualifiedCounter[myTurn] += 1 # add 1 strike for every game that the agent throws an incompatible format
+                disqualified[myTurn] = True
+                passes += 1
+                print(str([agent1, agent2, agent3, agent4][myTurn]) + " has been disqualified from this game for throwing cards of the wrong format.")
                 if disqualifiedCounter[myTurn] >= 3:
-                    disqualified[myTurn] = True
                     disqualifiedMatch[myTurn] = True
-                    print(str([agent1, agent2, agent3, agent4][myTurn]) + " has been disqualified from this match for throwing cards of the format.")
-                    if control: # if disqualified player was supposed to lead the trick
-                        passes = 3 # pass the control to the next player
+                    print(str([agent1, agent2, agent3, agent4][myTurn]) + " has been disqualified from this match.")
+                if control: # if disqualified player was supposed to lead the trick
+                    passes = 3 # pass the control to the next player
 
 
             if gameOver: # to save time by not doing the below operations
@@ -151,11 +185,11 @@ def matchSimulation(n_games, agent1, agent2, agent3, agent4):
                 myTurn = (myTurn+1) % 4
                 passes += 1
 
-            if passes == 3:
+            if passes >= 3:
                 control = True
                 passes = 0
             else:
-                control = False
+                control = False  
 
 
 
@@ -172,7 +206,7 @@ def matchSimulation(n_games, agent1, agent2, agent3, agent4):
             scoresRound = [0,0,0,0]
             scoresRound[(myTurn-1) % 4] = tempScoreSum # prev player
         
-        if scoresRound[myTurn] == 0: # in the case where the game ends without any winner, don't adjust anything
+        if scoresRound[myTurn] == 0: # else (if game ends without any winner): don't adjust anything
             scoresRound[myTurn] = -tempScoreSum
             winsTotal[myTurn] += 1
 
@@ -202,4 +236,4 @@ if __name__ == '__main__':
     print(matchSimulation(args.n_games, args.agent_1, args.agent_2, args.agent_3, args.agent_4))
 
     end = time.time()
-    print("time taken: " + str(end-start))
+    # print("time taken: " + str(end-start))
