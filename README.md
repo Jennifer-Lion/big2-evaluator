@@ -20,7 +20,7 @@ In each python file, ensure that there is a function `action(hand, field, contro
   - Output: A list of strings of card(s) that is/are being played, in a 2-character format: ```NS```, where ```N``` is the number and ```S``` is the suit of the card
   e.g. ` ['8H', '9C', '10D', 'JS', 'QC'] `
 
-## 2.	Create `agents.txt` file
+## 2.	Edit `agents.txt` file
 This file should contain all the AI agents' names that you want to evaluate against each other, each separated with a newline. It is important for these names to be the same as the python file names that you have prepared in step number 1.
 
 Note that human players are also supported by adding `human` as an agent. In light of that, naming an AI agent "human" should be avoided.
@@ -38,3 +38,17 @@ python tournament.py n_games style
 It should be noted that the ranks will not be unique - there will be duplicates denoting ties - due to the nature of the tournaments.
 
 In the last step, the parameter ```style``` denotes the preferred tournament style – “single” for pairwise single-elimination tournament style, and “swiss” for Swiss-style tournament.
+
+## Test agents
+This project has 8 test agents that has different logic with different expected rank, which can be found in the ```agents``` folder. These can be used to test out the tournaments or matches. 
+
+| Rank | Description of Logic | Reasoning of Rank
+| --- | --- | --- |
+| 1 | Rule-based AI with additional rule for last card | Almost-optimized move without the probability of taking everyone’s penalties |
+| 2 | Rule-based AI | Almost-optimized move |
+| 3 | Always throw the lowest from validMoves | Discarding cards while keeping high cards for future use |
+| 4 | Always throw the lowest single card from validMoves | Discarding cards while keeping high cards for future use but passing every non-singles round |
+| 5 | Randomize from validMoves | Discarding cards but may be left with some low-value cards that are difficult to discard |
+| 6 | Always throw the highest from validMoves | Will always be left with some low-value cards that are difficult to discard |
+| 7 | Randomize card from hand | Likely to be disqualified and have a large number of cards in hand |
+| 8 | Always pass | Will either be left with all his cards or disqualified |
